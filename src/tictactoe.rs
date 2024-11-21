@@ -59,8 +59,8 @@ impl TicTacToe {
             State::Tie => {
                 println!("It's a tie!");
             }
-            State::TurnOf(_) => {
-                print!("Enter the coordinates separated by space:");
+            State::TurnOf(player) => {
+                print!("Enter the coordinates for player {player} separated by space:");
                 let col: usize = text_io::read!();
                 let row: usize = text_io::read!();
                 self.turn(col, row);
@@ -98,19 +98,36 @@ impl TicTacToe {
         }
     }
 
+    /// Make a turn for the next player.
     pub fn turn(&mut self, col: usize, row: usize) -> bool {
+        self.turn_idx(Self::idx(col, row))
+    }
+
+    /// Make a turn for the next player using array index for locating the cell.
+    pub fn turn_idx(&mut self, idx: usize) -> bool {
         match self.state() {
             State::TurnOf(player) => {
-                let cell = &mut self.board[Self::idx(col, row)];
+                let cell = &mut self.board[idx];
                 if *cell != Cell::Empty {
                     false
-                }else {
-                *cell = Cell::from(&player);
-                true
+                } else {
+                    *cell = Cell::from(&player);
+                    true
                 }
             }
             state => panic!("trying to perform a turn when state is {state:?}"),
         }
+    }
+
+    pub fn available_moves_idx(&self) -> Vec<usize> {
+        self.board
+            .iter()
+            .enumerate()
+            .filter_map(|(i, &cell)| match cell == Cell::Empty {
+                true => Some(i),
+                false => None,
+            })
+            .collect()
     }
 
     fn idx(col: usize, row: usize) -> usize {
@@ -167,6 +184,7 @@ mod tests {
         assert!(game.turn(1, 1));
         assert_eq!(game.state(), State::TurnOf(Player::O));
         assert!(!game.turn(1, 1)); // can't play the same cell twice
-        assert!(game.turn(0, 0));
+        assert!(game.turn_idx(0));
+        assert_eq!(game.available_moves_idx(), vec![1, 2, 3, 5, 6, 7, 8])
     }
 }
