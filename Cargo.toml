@@ -4,4 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+clap = "4.5.21"
+# macroquad = "0.4.13"
+owo-colors = "4.1.0"
+tabled = "0.16.0"
 text_io = "0.1.12"

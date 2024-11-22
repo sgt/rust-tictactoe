@@ -44,6 +44,20 @@ pub struct TicTacToe {
 }
 
 impl TicTacToe {
+    const TRIPLETS: [[usize; 3]; 8] = [
+        // rows
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        // cols
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        // diagonals
+        [0, 4, 8],
+        [2, 4, 6],
+    ];
+
     pub fn new() -> Self {
         TicTacToe {
             board: [Cell::Empty; 9],
@@ -77,16 +91,14 @@ impl TicTacToe {
         let o_count = self.board.iter().filter(|&cell| *cell == Cell::O).count();
         if x_count > o_count + 1 || o_count > x_count {
             State::Impossible
-        } else if self
-            .triplets()
+        } else if Self::TRIPLETS
             .iter()
-            .any(|triplet| triplet.iter().all(|&cell| cell == Cell::X))
+            .any(|triplet| triplet.iter().all(|&i| self.board[i] == Cell::X))
         {
             State::Won(Player::X)
-        } else if self
-            .triplets()
+        } else if Self::TRIPLETS
             .iter()
-            .any(|triplet| triplet.iter().all(|&cell| cell == Cell::O))
+            .any(|triplet| triplet.iter().all(|&i| self.board[i] == Cell::O))
         {
             State::Won(Player::O)
         } else if self.board.iter().all(|&cell| cell != Cell::Empty) {
@@ -138,22 +150,6 @@ impl TicTacToe {
     // fn coords(idx: usize) -> (usize, usize) {
     //     (idx % 3, idx / 3)
     // }
-
-    fn triplets(&self) -> Vec<Vec<Cell>> {
-        vec![
-            // rows
-            vec![self.board[0], self.board[1], self.board[2]],
-            vec![self.board[3], self.board[4], self.board[5]],
-            vec![self.board[6], self.board[7], self.board[8]],
-            // cols
-            vec![self.board[0], self.board[3], self.board[6]],
-            vec![self.board[1], self.board[4], self.board[7]],
-            vec![self.board[2], self.board[5], self.board[8]],
-            // diags
-            vec![self.board[0], self.board[4], self.board[8]],
-            vec![self.board[2], self.board[4], self.board[6]],
-        ]
-    }
 }
 
 impl Display for TicTacToe {
