@@ -4,8 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-clap = "4.5.21"
+clap = { version = "4.5.21", features = ["derive"] }
 # macroquad = "0.4.13"
 owo-colors = "4.1.0"
-tabled = "0.16.0"
+rand = "0.8.5"
+tabled = "0.17.0"
 text_io = "0.1.12"
