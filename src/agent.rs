@@ -1,7 +1,10 @@
 use crate::game::{Position, Board};
 
+pub mod human;
 pub mod minimax;
 pub mod silly;
+
+pub use human::HumanAgent;
 pub use minimax::MinimaxAgent;
 pub use silly::SillyAgent;
 

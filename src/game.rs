@@ -1,8 +1,10 @@
 use std::fmt::Display;
 
+use tabled::{builder::Builder, settings::Style};
+
 // Position on board from 1 to 9, starting with the top left corner
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub struct Position(usize);
+pub struct Position(pub usize);
 impl Position {
     pub fn as_idx(&self) -> usize {
         self.0 - 1
@@ -13,7 +15,13 @@ impl Position {
     }
 }
 
-#[derive(Debug, PartialEq)]
+impl Display for Position {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord)]
 pub enum Player {
     X,
     O,
@@ -28,7 +36,7 @@ impl Display for Player {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum State {
     Impossible,
     Tie,
@@ -39,17 +47,7 @@ pub enum State {
 #[derive(Clone, Copy, PartialEq)]
 pub enum Cell {
     Empty,
-    X,
-    O,
-}
-
-impl Cell {
-    pub fn from(player: &Player) -> Self {
-        match player {
-            Player::X => Cell::X,
-            Player::O => Cell::O,
-        }
-    }
+    Marked(Player),
 }
 
 pub struct Board([Cell; 9]);
@@ -81,43 +79,34 @@ impl Board {
         Board([Cell::Empty; 9])
     }
 
-    pub fn play(&mut self) {
-        println!("{}", self);
-        match self.state() {
-            State::Impossible => {
-                panic!("Error: impossible state, quitting");
-            }
-            State::Tie => {
-                println!("It's a tie!");
-            }
-            State::TurnOf(player) => {
-                print!("Enter the position for player {player}:");
-                let pos: usize = text_io::read!();
-                self.turn(Position(pos));
-                self.play()
-            }
-            State::Won(player) => {
-                println!("Player {player} won!");
-            }
-        }
+    fn has_won(&self, player: Player) -> bool {
+        Self::TRIPLETS
+            .iter()
+            .any(|triplet| triplet.iter().all(|&p| self.get(p) == Cell::Marked(player)))
+    }
+
+    fn is_tie(&self) -> bool {
+        self.0.iter().all(|&cell| cell != Cell::Empty)
     }
 
     pub fn state(&self) -> State {
-        let x_count = self.0.iter().filter(|&cell| *cell == Cell::X).count();
-        let o_count = self.0.iter().filter(|&cell| *cell == Cell::O).count();
+        let x_count = self
+            .0
+            .iter()
+            .filter(|&cell| *cell == Cell::Marked(Player::X))
+            .count();
+        let o_count = self
+            .0
+            .iter()
+            .filter(|&cell| *cell == Cell::Marked(Player::O))
+            .count();
         if x_count > o_count + 1 || o_count > x_count {
             State::Impossible
-        } else if Self::TRIPLETS
-            .iter()
-            .any(|triplet| triplet.iter().all(|&p| self.get(p) == Cell::X))
-        {
+        } else if self.has_won(Player::X) {
             State::Won(Player::X)
-        } else if Self::TRIPLETS
-            .iter()
-            .any(|triplet| triplet.iter().all(|&p| self.get(p) == Cell::O))
-        {
+        } else if self.has_won(Player::O) {
             State::Won(Player::O)
-        } else if self.0.iter().all(|&cell| cell != Cell::Empty) {
+        } else if self.is_tie() {
             State::Tie
         } else if x_count == o_count {
             State::TurnOf(Player::X)
@@ -134,7 +123,7 @@ impl Board {
                 if cell != Cell::Empty {
                     false
                 } else {
-                    self.set(pos, Cell::from(&player));
+                    self.set(pos, Cell::Marked(player));
                     true
                 }
             }
@@ -152,22 +141,23 @@ impl Board {
             })
             .collect()
     }
+
+    fn table_row(&self, row: usize) -> impl Iterator<Item = String> + '_ {
+        self.0[row * 3..3 + row * 3]
+            .iter()
+            .enumerate()
+            .map(move |(i, cell)| match cell {
+                Cell::Empty => Position::from_idx(i + row * 3).to_string(),
+                Cell::Marked(player) => player.to_string(),
+            })
+    }
 }
 
 impl Display for Board {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut board = String::new();
-        for (i, cell) in self.0.iter().enumerate() {
-            match cell {
-                Cell::Empty => board.push('.'),
-                Cell::X => board.push('X'),
-                Cell::O => board.push('O'),
-            }
-            if i % 3 == 2 {
-                board.push('\n');
-            }
-        }
-        write!(f, "{board}")
+        let mut builder = Builder::default();
+        (0..=2).for_each(|i| builder.push_record(self.table_row(i)));
+        write!(f, "{}", builder.build().with(Style::modern_rounded()))
     }
 }
 
@@ -176,7 +166,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_state() {
+    fn test_board() {
         let mut board = Board::new();
         assert_eq!(board.state(), State::TurnOf(Player::X));
         assert!(board.turn(Position(5)));

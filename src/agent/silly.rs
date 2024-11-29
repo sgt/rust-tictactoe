@@ -1,4 +1,5 @@
 use crate::game::Position;
+use rand::prelude::*;
 
 use super::Agent;
 
@@ -11,7 +12,7 @@ impl Agent for SillyAgent {
         if positions.is_empty() {
             None
         } else {
-            Some(positions[rand::random::<usize>() % positions.len()])
+            Some(positions[random::<usize>() % positions.len()])
         }
     }
 }
