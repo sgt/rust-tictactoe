@@ -4,9 +4,9 @@ use rand::prelude::*;
 use super::Agent;
 
 /// Making random moves.
-pub struct SillyAgent;
+pub struct RandomAgent;
 
-impl Agent for SillyAgent {
+impl Agent for RandomAgent {
     fn next_move(&self, board: &crate::game::Board) -> Option<Position> {
         let positions = board.available_moves();
         if positions.is_empty() {

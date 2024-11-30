@@ -1,12 +1,9 @@
 use crate::game::{Position, Board};
 
 pub mod human;
-pub mod minimax;
-pub mod silly;
+pub mod random;
 
-pub use human::HumanAgent;
-pub use minimax::MinimaxAgent;
-pub use silly::SillyAgent;
+pub use random::RandomAgent;
 
 pub trait Agent {
     fn next_move(&self, board: &Board) -> Option<Position>;

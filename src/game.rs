@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use owo_colors::OwoColorize;
 use tabled::{builder::Builder, settings::Style};
 
 // Position on board from 1 to 9, starting with the top left corner
@@ -30,8 +31,8 @@ pub enum Player {
 impl Display for Player {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::X => write!(f, "X"),
-            Self::O => write!(f, "O"),
+            Self::X => write!(f, "{}", "X".blue()),
+            Self::O => write!(f, "{}", "O".red()),
         }
     }
 }

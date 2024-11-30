@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
-use agent::{Agent, SillyAgent};
+use agent::{Agent, RandomAgent};
 use clap::Parser;
 use game::{Board, Player, State};
 
@@ -65,15 +65,32 @@ where
     }
     board.state()
 }
-fn main() {
-    let args = Args::parse();
-    let mut results: HashMap<State, usize> = HashMap::new();
-    for _ in 0..1_000 {
+
+/*
+Desired cli syntax:
+
+$ tictactoe stats -n 1000 -x random -o random
+$ tictactoe play -x random -o human
+*/
+
+struct GameStats(HashMap<State, usize>);
+impl Display for GameStats {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut result_tuples = self.0.iter().collect::<Vec<_>>();
+        result_tuples.sort();
+        write!(f, "{:?}", result_tuples)
+    }
+}
+
+fn game_stats(iterations: usize) -> GameStats {
+    let mut results = HashMap::new();
+
+    for _ in 0..iterations {
         let mut board = Board::new();
         let state = play(
             &mut board,
-            &SillyAgent,
-            &SillyAgent,
+            &RandomAgent,
+            &RandomAgent,
             &PlayOptions {
                 print_board_every_turn: false,
                 print_final_board: false,
@@ -82,7 +99,11 @@ fn main() {
         );
         *results.entry(state).or_insert(0) += 1;
     }
-    let mut result_tuples = results.into_iter().collect::<Vec<_>>();
-    result_tuples.sort();
-    println!("{:?}", result_tuples);
+
+    GameStats(results)
+}
+
+fn main() {
+    // let args = Args::parse();
+    println!("{}", game_stats(1000));
 }
